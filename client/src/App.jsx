@@ -8,7 +8,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Media Fetcher</h1>
+      <h1>Basket</h1>
       <Form setMedia={setMedia} />
       {media?.type === "audio" && <Player url={media.url} />}
       {media?.type === "video" && <VideoEmbed url={media.embed_url} />}
