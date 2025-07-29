@@ -7,7 +7,7 @@ A full-stack web application that lets users search for YouTube videos, and choo
 ## Features
 
 - Search for YouTube videos by query
-- Fetch audio and convert it to `.mp3` on the fly
+- Fetch audio and convert it to `.mp3`
 - Embed YouTube video in the frontend via iframe
 - Play/pause audio with progress tracking
 - Download audio with a single click
@@ -18,10 +18,10 @@ A full-stack web application that lets users search for YouTube videos, and choo
 
 ## Tech Stack
 
-Frontend - React + Vite 
-Backend - FastAPI
-Media Tools - yt-dlp
-Testing - pytest, httpx
-Server - Uvicorn
+- Frontend - React + Vite 
+- Backend - FastAPI
+- Media Tools - yt-dlp
+- Testing - pytest, httpx
+- Server - Uvicorn
 
 
