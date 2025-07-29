@@ -1,0 +1,41 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+client/node_modules/
+server/venv/
+__pycache__/
+*.py[cod]
+
+# Build output
+client/dist/
+client/.vite/
+dist-ssr/
+*.local
+server/media/
+
+# Environment files
+.env
+.env.*  # in case you use .env.dev, .env.prod etc.
+
+# Editor directories and files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# System
+Thumbs.db
+
+server/.pytest_cache
