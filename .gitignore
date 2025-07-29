@@ -22,7 +22,7 @@ server/media/
 
 # Environment files
 .env
-.env.*  # in case you use .env.dev, .env.prod etc.
+.env.*  
 
 # Editor directories and files
 .vscode/
