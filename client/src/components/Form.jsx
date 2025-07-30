@@ -4,6 +4,11 @@ function Form({ setMedia }) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState("audio");
 
+  const mediaOptions = [
+    {label:"Audio", value:"audio"},
+    {label:"Video", value:"video"},
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -28,24 +33,15 @@ function Form({ setMedia }) {
         onChange={(e) => setQuery(e.target.value)}
         required
       />
-      <label>
-        <input
-          type="radio"
-          value="audio"
-          checked={type === "audio"}
-          onChange={() => setType("audio")}
-        />
-        Audio
-      </label>
-      <label>
-        <input
-          type="radio"
-          value="video"
-          checked={type === "video"}
-          onChange={() => setType("video")}
-        />
-        Video
-      </label>
+      <select id="dropdown" value={type} onChange={(e) => setType(e.target.value)}>
+        {mediaOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+
+        ))}
+      </select>
+
       <button type="submit">Fetch</button>
     </form>
   );
