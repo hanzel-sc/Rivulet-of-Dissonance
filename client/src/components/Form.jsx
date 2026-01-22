@@ -1,3 +1,4 @@
+// Form.jsx
 import { useState } from 'react';
 
 function Form({ setMedia }) {
@@ -25,23 +26,20 @@ function Form({ setMedia }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="search-form">
       <input
         type="text"
-        placeholder="Enter search..."
+        placeholder="Search media..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         required
+        autoFocus
       />
-      <select id="dropdown" value={type} onChange={(e) => setType(e.target.value)}>
+      <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Select media type">
         {mediaOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-
+          <option key={option.value} value={option.value}>{option.label}</option>
         ))}
       </select>
-
       <button type="submit">Fetch</button>
     </form>
   );

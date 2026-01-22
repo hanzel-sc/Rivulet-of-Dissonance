@@ -1,15 +1,13 @@
+// VideoEmbed.jsx
 function VideoEmbed({ url }) {
   return (
-    <div>
+    <div className="media-video">
       <iframe
-        width="560"
-        height="315"
         src={url}
-        frameBorder={0}
+        title="Embedded Video"
         allow="autoplay; encrypted-media"
         allowFullScreen
-        title="YouTube Video"
-      ></iframe>
+      />
     </div>
   );
 }
