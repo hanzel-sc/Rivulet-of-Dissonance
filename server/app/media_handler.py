@@ -1,4 +1,4 @@
-import os
+import os, uuid
 import json
 from datetime import datetime, timedelta
 from typing import List, Dict
@@ -14,41 +14,41 @@ def ensure_media_dir():
             os.makedirs(d)
 
 def search_youtube(query: str, max_results: int = 5) -> List[Dict]:
-    """Search YouTube and return top N results with metadata"""
     ydl_opts = {
-        "format": "bestaudio/best",
         "quiet": True,
         "no_warnings": True,
-        "extract_flat": True,
-        "default_search": f"ytsearch{max_results}",
         "skip_download": True,
+        "extract_flat": True,
     }
-    
+
+    search_query = f"ytsearch{max_results}:{query}"
+
     with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(query, download=False)
-        
-        if not info or "entries" not in info:
-            return []
-        
-        results = []
-        for entry in info["entries"][:max_results]:
-            if not entry:
-                continue
-                
-            results.append({
-                "id": entry.get("id", ""),
-                "title": entry.get("title", "Unknown"),
-                "uploader": entry.get("uploader", entry.get("channel", "Unknown")),
-                "duration": entry.get("duration", 0),
-                "thumbnail": entry.get("thumbnail", ""),
-                "url": entry.get("webpage_url", f"https://youtube.com/watch?v={entry.get('id')}")
-            })
-        
-        return results
+        info = ydl.extract_info(search_query, download=False)
+
+    if not info or "entries" not in info:
+        return []
+
+    results = []
+    for entry in info["entries"]:
+        if not entry or not entry.get("id"):
+            continue
+
+        results.append({
+            "id": entry["id"],
+            "title": entry.get("title") or "Unknown",
+            "uploader": entry.get("uploader") or entry.get("channel") or "Unknown",
+            "duration": entry.get("duration") or 0,
+            "thumbnail": entry.get("thumbnail") or "",
+            "url": f"https://www.youtube.com/watch?v={entry['id']}",
+        })
+
+    return results
+
 
 def create_job(video_id: str, mode: str) -> str:
     """Create a job file and return job ID"""
-    job_id = f"{video_id}_{mode}_{int(datetime.now().timestamp())}"
+    job_id = uuid.uuid4().hex
     job_file = os.path.join(JOBS_DIR, f"{job_id}.json")
     
     job_data = {

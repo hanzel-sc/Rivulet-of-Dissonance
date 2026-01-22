@@ -7,10 +7,11 @@ class SearchRequest(BaseModel):
 class SearchResult(BaseModel):
     id: str
     title: str
-    uploader: str
-    duration: int
-    thumbnail: str
+    uploader: Optional[str] = "Unknown"
+    duration: Optional[int] = 0
+    thumbnail: Optional[str] = ""
     url: str
+
 
 class SearchResponse(BaseModel):
     results: List[SearchResult]
