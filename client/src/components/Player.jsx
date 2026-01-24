@@ -1,5 +1,5 @@
 // Player.jsx
-function Player({ url }) {
+/*function Player({ url }) {
   const filename = url.split("/").pop();
 
   return (
@@ -12,4 +12,4 @@ function Player({ url }) {
   );
 }
 
-export default Player;
+export default Player;*/

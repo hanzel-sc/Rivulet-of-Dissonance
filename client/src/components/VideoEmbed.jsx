@@ -1,5 +1,5 @@
 // VideoEmbed.jsx
-function VideoEmbed({ url }) {
+/*function VideoEmbed({ url }) {
   return (
     <div className="media-video">
       <iframe
@@ -12,4 +12,4 @@ function VideoEmbed({ url }) {
   );
 }
 
-export default VideoEmbed;
+export default VideoEmbed;*/

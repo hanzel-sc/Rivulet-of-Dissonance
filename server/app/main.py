@@ -27,7 +27,7 @@ app = FastAPI(lifespan=lifespan)
 # CORS - restrict in production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["*"],  # Allow all origins for development. Restrict in production!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,7 +37,7 @@ app.add_middleware(
 @app.post("/search", response_model=SearchResponse)
 async def search(req: SearchRequest):
     try:
-        results = search_youtube(req.query, max_results=5)
+        results = search_youtube(req.query, max_results=6)
         
         if not results:
             return SearchResponse(results=[])

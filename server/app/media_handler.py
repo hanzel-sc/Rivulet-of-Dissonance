@@ -34,13 +34,17 @@ def search_youtube(query: str, max_results: int = 5) -> List[Dict]:
         if not entry or not entry.get("id"):
             continue
 
+        video_id = entry["id"]
+        # Use YouTube's standard thumbnail URL as fallback if not provided
+        thumbnail = entry.get("thumbnail") or f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+        
         results.append({
-            "id": entry["id"],
+            "id": video_id,
             "title": entry.get("title") or "Unknown",
             "uploader": entry.get("uploader") or entry.get("channel") or "Unknown",
             "duration": entry.get("duration") or 0,
-            "thumbnail": entry.get("thumbnail") or "",
-            "url": f"https://www.youtube.com/watch?v={entry['id']}",
+            "thumbnail": thumbnail,
+            "url": f"https://www.youtube.com/watch?v={video_id}",
         })
 
     return results
