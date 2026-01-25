@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/context/ThemeContext";
+import { ParticleAnimation, SHAPES } from "./ParticleAnimation";
 
 export const LampContainer = ({ children, className }) => {
     const { isDarkMode } = useTheme();
@@ -15,6 +16,13 @@ export const LampContainer = ({ children, className }) => {
                 className
             )}
         >
+            {/* Particle Animation - fills empty spaces on both sides */}
+            <ParticleAnimation
+                leftShape={SHAPES.orbit}
+                rightShape={SHAPES.orbit}
+                particleCount={18}
+            />
+
             {/* Lamp Effect Header */}
             <div className="w-full z-0 pt-[20vh]">
                 <div className="relative flex w-full items-center justify-center isolate z-0 h-80">

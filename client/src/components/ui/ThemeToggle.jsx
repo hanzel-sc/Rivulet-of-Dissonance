@@ -24,7 +24,7 @@ export function ThemeToggle() {
             <input
                 type="checkbox"
                 className="theme-input"
-                checked={!isDarkMode}
+                checked={isDarkMode}
                 onChange={toggleTheme}
             />
             <span className="slider"></span>
