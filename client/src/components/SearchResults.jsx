@@ -1,11 +1,17 @@
 import { cn, formatDuration } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Clock, User, CheckCircle2 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 function SearchResults({ results, selectedResult, onSelect }) {
+  const { isDarkMode } = useTheme();
+
   return (
     <div className="w-full max-w-5xl mx-auto mt-8 pb-8">
-      <h2 className="text-xl font-bold mb-5 text-center text-slate-100 font-serif">
+      <h2 className={cn(
+        "text-xl font-bold mb-5 text-center font-serif",
+        isDarkMode ? "text-slate-100" : "text-slate-800"
+      )}>
         Search Results
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -14,10 +20,11 @@ function SearchResults({ results, selectedResult, onSelect }) {
             key={result.id}
             className={cn(
               "relative flex gap-3 p-2 rounded-xl cursor-pointer transition-all duration-200",
-              "bg-slate-900/50 backdrop-blur-sm border hover:border-cyan-500/50",
+              "backdrop-blur-sm border hover:border-cyan-500/50",
+              isDarkMode ? "bg-slate-900/50" : "bg-white/80 shadow-md",
               selectedResult?.id === result.id
                 ? "border-cyan-500 ring-1 ring-cyan-500 shadow-[0_0_15px_rgba(0,229,255,0.15)]"
-                : "border-slate-800"
+                : isDarkMode ? "border-slate-800" : "border-slate-200"
             )}
             onClick={() => onSelect(result)}
           >
@@ -46,13 +53,15 @@ function SearchResults({ results, selectedResult, onSelect }) {
             <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
               <h3 className={cn(
                 "text-xs font-medium leading-tight line-clamp-2 transition-colors",
-                selectedResult?.id === result.id ? "text-cyan-400" : "text-slate-100"
+                selectedResult?.id === result.id
+                  ? "text-cyan-400"
+                  : isDarkMode ? "text-slate-100" : "text-slate-800"
               )}>
                 {result.title}
               </h3>
               <div className="flex items-center gap-1 mt-1">
-                <User className="w-2.5 h-2.5 text-slate-500" />
-                <span className="text-[10px] text-slate-500 truncate">
+                <User className={cn("w-2.5 h-2.5", isDarkMode ? "text-slate-500" : "text-slate-400")} />
+                <span className={cn("text-[10px] truncate", isDarkMode ? "text-slate-500" : "text-slate-500")}>
                   {result.uploader}
                 </span>
               </div>

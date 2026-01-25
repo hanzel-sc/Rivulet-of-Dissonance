@@ -1,10 +1,16 @@
 import { cn } from "@/lib/utils";
 import { Music, Video, ArrowRight } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 function ModeSelector({ selectedMode, onModeSelect, onFetch, disabled }) {
+  const { isDarkMode } = useTheme();
+
   return (
     <div className="w-full max-w-lg mx-auto mt-6 text-center">
-      <h3 className="text-base font-semibold mb-4 text-slate-300">
+      <h3 className={cn(
+        "text-base font-semibold mb-4",
+        isDarkMode ? "text-slate-300" : "text-slate-600"
+      )}>
         Choose format
       </h3>
 
@@ -18,7 +24,9 @@ function ModeSelector({ selectedMode, onModeSelect, onFetch, disabled }) {
             "border-2",
             selectedMode === "audio"
               ? "bg-cyan-500 text-black border-cyan-500 shadow-[0_0_15px_rgba(0,229,255,0.3)]"
-              : "bg-slate-900/60 text-slate-300 border-slate-700 hover:border-cyan-500/50 hover:text-white"
+              : isDarkMode
+                ? "bg-slate-900/60 text-slate-300 border-slate-700 hover:border-cyan-500/50 hover:text-white"
+                : "bg-white/80 text-slate-600 border-slate-300 hover:border-cyan-500/50 hover:text-slate-900"
           )}
         >
           <Music className="w-4 h-4" />
@@ -33,7 +41,9 @@ function ModeSelector({ selectedMode, onModeSelect, onFetch, disabled }) {
             "border-2",
             selectedMode === "video"
               ? "bg-cyan-500 text-black border-cyan-500 shadow-[0_0_15px_rgba(0,229,255,0.3)]"
-              : "bg-slate-900/60 text-slate-300 border-slate-700 hover:border-cyan-500/50 hover:text-white"
+              : isDarkMode
+                ? "bg-slate-900/60 text-slate-300 border-slate-700 hover:border-cyan-500/50 hover:text-white"
+                : "bg-white/80 text-slate-600 border-slate-300 hover:border-cyan-500/50 hover:text-slate-900"
           )}
         >
           <Video className="w-4 h-4" />
@@ -44,7 +54,10 @@ function ModeSelector({ selectedMode, onModeSelect, onFetch, disabled }) {
       {/* Fetch Button */}
       <div className="flex justify-center">
         <button
-          className="slide-button min-w-[180px] text-sm uppercase tracking-wide"
+          className={cn(
+            "slide-button min-w-[180px] text-sm uppercase tracking-wide",
+            !isDarkMode && "slide-button-light"
+          )}
           onClick={onFetch}
           disabled={disabled}
         >

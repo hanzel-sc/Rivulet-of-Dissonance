@@ -1,0 +1,102 @@
+/* Theme Toggle Switch - From Uiverse.io by andrew-demchenk0 */
+.theme-switch {
+    font-size: 17px;
+    position: relative;
+    display: inline-block;
+    width: 64px;
+    height: 34px;
+    transform: scale(0.6);
+    transform-origin: center;
+}
+
+.theme-switch .theme-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.theme-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #183153;
+    transition: 0.4s;
+    border-radius: 30px;
+}
+
+.theme-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 30px;
+    width: 30px;
+    border-radius: 20px;
+    left: 2px;
+    bottom: 2px;
+    z-index: 2;
+    background-color: #cee6f4;
+    transition: 0.4s;
+}
+
+.theme-switch .sun svg {
+    position: absolute;
+    top: 6px;
+    left: 36px;
+    z-index: 1;
+    width: 24px;
+    height: 24px;
+    animation: rotate 15s linear infinite;
+}
+
+.theme-switch .moon svg {
+    fill: #0c2b43;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 1;
+    width: 24px;
+    height: 24px;
+    animation: tilt 5s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes tilt {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-10deg);
+    }
+
+    75% {
+        transform: rotate(10deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+.theme-switch .theme-input:checked+.slider {
+    background-color: #73C0FC;
+}
+
+.theme-switch .theme-input:focus+.slider {
+    box-shadow: 0 0 0px #73C0FC;
+}
+
+.theme-switch .theme-input:checked+.slider:before {
+    transform: translateX(30px);
+}

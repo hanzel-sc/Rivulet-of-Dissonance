@@ -46,6 +46,7 @@
   #root {
     min-height: 100vh;
   }
+
   .dark {
     --background: 20 14.3% 4.1%;
     --foreground: 60 9.1% 97.8%;
@@ -171,13 +172,19 @@
   transform: none;
 }
 
+/* Light Mode Slide Button */
+.slide-button-light {
+  --main-color: theme('colors.cyan.600');
+  --bg-color: theme('colors.white');
+  --font-color: theme('colors.slate.700');
+  background-color: var(--bg-color);
+  color: var(--font-color);
+}
 
+.slide-button-light::before {
+  background-color: var(--main-color);
+}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+.slide-button-light:hover {
+  color: white;
 }
