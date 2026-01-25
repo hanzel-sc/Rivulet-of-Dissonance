@@ -10,7 +10,7 @@ function MediaDisplay({ media, onReset, isDownloading = false }) {
 
   return (
     <div className={cn(
-      "w-full max-w-3xl mx-auto mt-12 p-8 rounded-3xl backdrop-blur-xl border-2 shadow-2xl",
+      "w-full max-w-3xl mx-auto mt-6 md:mt-12 p-4 md:p-8 rounded-3xl backdrop-blur-xl border-2 shadow-2xl",
       isDarkMode
         ? "bg-slate-900/40 border-slate-800"
         : "bg-white/80 border-slate-200"

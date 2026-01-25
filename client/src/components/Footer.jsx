@@ -54,7 +54,11 @@ export function Footer() {
     ];
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3">
+        <div className={cn(
+            "fixed bottom-4 right-4 md:right-8 z-50 flex items-center gap-2 md:gap-3 p-1.5 md:p-0 rounded-full",
+            "md:bg-transparent",
+            isDarkMode ? "bg-slate-900/60 backdrop-blur-md md:backdrop-blur-none" : "bg-white/60 backdrop-blur-md md:backdrop-blur-none"
+        )}>
             {socialLinks.map((link) => (
                 <a
                     key={link.name}
@@ -62,14 +66,16 @@ export function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(
-                        "p-2.5 rounded-full transition-all duration-300 hover:scale-110",
+                        "p-2 md:p-2.5 rounded-full transition-all duration-300 hover:scale-110",
                         isDarkMode
                             ? "text-slate-400 hover:text-cyan-400 hover:bg-slate-800/50"
                             : "text-slate-600 hover:text-cyan-600 hover:bg-slate-200/50"
                     )}
                     aria-label={link.name}
                 >
-                    {link.icon}
+                    <span className="md:scale-100 scale-90 block">
+                        {link.icon}
+                    </span>
                 </a>
             ))}
         </div>

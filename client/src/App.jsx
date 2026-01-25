@@ -151,16 +151,16 @@ function App() {
         <img
           src="/logo.png"
           alt="Basket Logo"
-          className="w-20 h-20 md:w-12 md:h-12 object-contain drop-shadow-lg"
+          className="w-12 h-12 md:w-20 md:h-20 object-contain drop-shadow-lg"
         />
       </div>
 
       {/* Theme Toggle - Fixed Top Right */}
-      <div className="fixed top-4 right-4 z-[100]">
+      <div className="fixed top-2 right-2 md:top-4 md:right-4 z-[100]">
         <ThemeToggle />
       </div>
 
-      {/* Footer - Fixed Bottom Right */}
+      {/* Footer - Social Links */}
       <Footer />
 
       <LampContainer className="pb-10">
@@ -174,7 +174,7 @@ function App() {
               duration: 0.6,
               ease: "easeInOut",
             }}
-            className={`bg-gradient-to-br py-2 bg-clip-text text-center text-4xl font-bold tracking-tight text-transparent md:text-6xl mb-6 font-serif ${isDarkMode
+            className={`bg-gradient-to-br py-2 bg-clip-text text-center text-5xl font-bold tracking-tight text-transparent md:text-7xl mb-6 font-serif ${isDarkMode
               ? "from-slate-300 to-slate-500"
               : "from-slate-700 to-slate-900"
               }`}
