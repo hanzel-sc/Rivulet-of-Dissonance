@@ -70,6 +70,7 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           video_id: selectedResult.id,
+          title: selectedResult.title.slice(0, 120), //implmenting a safety as some results can be insanely long
           mode: selectedMode,
         }),
       });
