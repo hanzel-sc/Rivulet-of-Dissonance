@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend-network
+
+  backend:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MAX_CONCURRENT_DOWNLOADS=5
+      - CORS_ORIGINS=https://rivulet-of-dissonance.vercel.app
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      - redis
+    networks:
+      - backend-network
+
+volumes:
+  redis_data:
+  media_data:
+
+networks:
+  backend-network:
+    driver: bridge

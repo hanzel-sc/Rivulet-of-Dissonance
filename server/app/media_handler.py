@@ -1,140 +1,137 @@
-import os, uuid
-import json
-from datetime import datetime, timedelta
+import os
+import uuid
 from typing import List, Dict
 from yt_dlp import YoutubeDL
+from app.redis_manager import get_redis
 
 MEDIA_DIR = os.path.abspath("media")
-JOBS_DIR = os.path.join(MEDIA_DIR, "jobs")
 FILES_DIR = os.path.join(MEDIA_DIR, "files")
 
 def ensure_media_dir():
-    for d in [MEDIA_DIR, JOBS_DIR, FILES_DIR]:
+    for d in [MEDIA_DIR, FILES_DIR]:
         if not os.path.exists(d):
             os.makedirs(d)
 
-def search_youtube(query: str, max_results: int = 5) -> List[Dict]:
+def search_youtube(query: str, max_results: int = 6) -> List[Dict]:
+    """Search YouTube - optimized with caching"""
+    redis = get_redis()
+    
+    # Check cache
+    cached = redis.get_cached_search(query)
+    if cached:
+        return cached
+    
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
         "skip_download": True,
         "extract_flat": True,
     }
-
+    
     search_query = f"ytsearch{max_results}:{query}"
-
-    with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(search_query, download=False)
-
-    if not info or "entries" not in info:
-        return []
-
-    results = []
-    for entry in info["entries"]:
-        if not entry or not entry.get("id"):
-            continue
-
-        video_id = entry["id"]
-        # Use YouTube's standard thumbnail URL as fallback if not provided
-        thumbnail = entry.get("thumbnail") or f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+    
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(search_query, download=False)
         
-        results.append({
-            "id": video_id,
-            "title": entry.get("title") or "Unknown",
-            "uploader": entry.get("uploader") or entry.get("channel") or "Unknown",
-            "duration": entry.get("duration") or 0,
-            "thumbnail": thumbnail,
-            "url": f"https://www.youtube.com/watch?v={video_id}",
-        })
+        if not info or "entries" not in info:
+            return []
+        
+        results = []
+        for entry in info.get("entries", []):
+            if not entry or not entry.get("id"):
+                continue
+            
+            video_id = entry["id"]
+            results.append({
+                "id": video_id,
+                "title": entry.get("title", "Unknown"),
+                "uploader": entry.get("uploader") or entry.get("channel", "Unknown"),
+                "duration": entry.get("duration", 0),
+                "thumbnail": entry.get("thumbnail") or f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
+                "url": f"https://www.youtube.com/watch?v={video_id}",
+            })
+        
+        # Cache for 1 hour
+        if results:
+            redis.cache_search_results(query, results)
+        
+        return results
+    except Exception as e:
+        print(f"Search error: {e}")
+        # Return empty list or re-raise if you want 500 with details
+        # For better UX, returning empty list is safer, but main.py handles exceptions too.
+        # Let's re-raise to see the error in the logs/API response for now.
+        raise e
 
-    return results
-
-
-def create_job(video_id: str, mode: str) -> str:
-    """Create a job file and return job ID"""
+def create_job(video_id: str, mode: str, title: str = None) -> str:
+    """Create job in Redis"""
+    redis = get_redis()
     job_id = uuid.uuid4().hex
-    job_file = os.path.join(JOBS_DIR, f"{job_id}.json")
-    
-    job_data = {
-        "id": job_id,
-        "video_id": video_id,
-        "mode": mode,
-        "status": "queued",
-        "created_at": datetime.now().isoformat()
-    }
-    
-    with open(job_file, "w") as f:
-        json.dump(job_data, f)
-    
+    redis.create_job(job_id, video_id, mode, title=title)
     return job_id
 
-def get_job_status(job_id: str) -> Dict:
-    """Get current job status"""
-    job_file = os.path.join(JOBS_DIR, f"{job_id}.json")
-    
-    if not os.path.exists(job_file):
-        return {"status": "not_found"}
-    
-    with open(job_file, "r") as f:
-        return json.load(f)
+def get_job(job_id: str) -> Dict:
+    """Get job status"""
+    redis = get_redis()
+    job = redis.get_job(job_id)
+    return job if job else {"status": "not_found"}
 
-def update_job_status(job_id: str, status: str, **kwargs):
+def update_job(job_id: str, **kwargs):
     """Update job status"""
-    job_file = os.path.join(JOBS_DIR, f"{job_id}.json")
-    
-    if os.path.exists(job_file):
-        with open(job_file, "r") as f:
-            job_data = json.load(f)
-        
-        job_data["status"] = status
-        job_data.update(kwargs)
-        
-        with open(job_file, "w") as f:
-            json.dump(job_data, f)
+    redis = get_redis()
+    redis.update_job(job_id, **kwargs)
+
+def acquire_download_slot(job_id: str) -> bool:
+    """Check if we can start a download (limit to 5 concurrent)"""
+    redis = get_redis()
+    return redis.acquire_download_slot(job_id, max_concurrent=5)
+
+def release_download_slot(job_id: str):
+    """Release download slot"""
+    redis = get_redis()
+    redis.release_download_slot(job_id)
 
 def download_audio(video_id: str, job_id: str) -> str:
-    """Download and convert audio to MP3 with optimized settings"""
+    """Download audio - optimized for speed"""
     output_path = os.path.join(FILES_DIR, f"{job_id}.mp3")
     url = f"https://youtube.com/watch?v={video_id}"
     
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": os.path.join(FILES_DIR, f"{job_id}.%(ext)s"),
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
-        "quiet": True,
-        "no_warnings": True,
-        "concurrent_fragment_downloads": 8,
-        "retries": 3,
-        "fragment_retries": 3,
-    }
+    # Wait for slot
+    if not acquire_download_slot(job_id):
+        update_job(job_id, status="queued", message="Waiting for download slot")
+        return None
     
     try:
-        update_job_status(job_id, "downloading")
+        update_job(job_id, status="downloading")
+        
+        ydl_opts = {
+            "format": "bestaudio/best",
+            "outtmpl": os.path.join(FILES_DIR, f"{job_id}.%(ext)s"),
+            "postprocessors": [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }],
+            "quiet": True,
+            "no_warnings": True,
+            # Speed optimizations
+            "concurrent_fragment_downloads": 8,
+            "retries": 3,
+            "fragment_retries": 3,
+        }
         
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
         
-        update_job_status(job_id, "ready", url=f"/media/files/{job_id}.mp3")
+        update_job(job_id, status="ready", url=f"/media/files/{job_id}.mp3")
         return output_path
-        
+    
     except Exception as e:
-        update_job_status(job_id, "failed", error=str(e))
+        update_job(job_id, status="failed", error=str(e))
+        if os.path.exists(output_path):
+            os.remove(output_path)
         raise
-
-def cleanup_old_files(max_age_hours: int = 24):
-    """Remove old job files and media files"""
-    cutoff = datetime.now() - timedelta(hours=max_age_hours)
     
-    for job_file in os.listdir(JOBS_DIR):
-        path = os.path.join(JOBS_DIR, job_file)
-        if os.path.getmtime(path) < cutoff.timestamp():
-            os.remove(path)
-    
-    for media_file in os.listdir(FILES_DIR):
-        path = os.path.join(FILES_DIR, media_file)
-        if os.path.getmtime(path) < cutoff.timestamp():
-            os.remove(path)
+    finally:
+        release_download_slot(job_id)

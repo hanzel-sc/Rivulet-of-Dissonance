@@ -37,6 +37,7 @@ def test_process_audio():
     """Test audio processing creates job"""
     response = client.post("/process", json={
         "video_id": "dQw4w9WgXcQ",
+        "title": "Rick Astley - Never Gonna Give You Up",
         "mode": "audio"
     })
     assert response.status_code == 200
@@ -48,6 +49,7 @@ def test_process_video():
     """Test video processing returns instant embed"""
     response = client.post("/process", json={
         "video_id": "dQw4w9WgXcQ",
+        "title": "Rick Astley - Never Gonna Give You Up",
         "mode": "video"
     })
     assert response.status_code == 200

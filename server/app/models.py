@@ -18,10 +18,12 @@ class SearchResponse(BaseModel):
 
 class ProcessRequest(BaseModel):
     video_id: str
+    title: Optional[str] = "download"  # Title for filename
     mode: str  # "audio" or "video"
 
 class JobStatus(BaseModel):
     status: str  # "queued", "downloading", "processing", "ready", "failed"
+    title: Optional[str] = None
     progress: Optional[int] = None
     url: Optional[str] = None
     embed_url: Optional[str] = None
