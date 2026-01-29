@@ -8,6 +8,14 @@ import { cn } from "@/lib/utils";
 function MediaDisplay({ media, onReset, isDownloading = false }) {
   const { isDarkMode } = useTheme();
 
+  const ERROR_MESSAGES = {
+    SOURCE_RESTRICTED:
+      "This track can’t be downloaded right now due to temporary restrictions from the source platform. You can still listen via the embedded player.",
+    UNKNOWN_ERROR:
+      "Something went wrong while processing this request. Please try again later."
+  };
+
+
   return (
     <div className={cn(
       "w-full max-w-3xl mx-auto mt-6 md:mt-12 p-4 md:p-8 rounded-3xl backdrop-blur-xl border-2 shadow-2xl",
@@ -32,7 +40,7 @@ function MediaDisplay({ media, onReset, isDownloading = false }) {
         </div>
       </div>
 
-      {media.type === "audio" && (
+      {media.type === "audio" && media.status === "ready" && (
         <div className="flex flex-col gap-8 items-center">
           <div className={cn(
             "w-full p-2 rounded-xl border shadow-inner",
@@ -45,6 +53,25 @@ function MediaDisplay({ media, onReset, isDownloading = false }) {
               className="w-full h-9"
             />
           </div>
+          {media.status === "blocked" && (
+            <div
+              className={cn(
+                "mt-6 p-5 rounded-2xl border text-center space-y-2",
+                isDarkMode
+                  ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-300"
+                  : "border-yellow-400/40 bg-yellow-100/60 text-yellow-800"
+              )}
+            >
+              <p className="font-semibold text-sm tracking-wide uppercase">
+                Download unavailable
+              </p>
+              <p className="text-sm leading-relaxed opacity-90">
+                {ERROR_MESSAGES[media.error] ||
+                  "This item can’t be downloaded right now."}
+              </p>
+            </div>
+          )}
+
 
           <a href={`${API_BASE_URL}/download/${media.jobId}`} download className="block w-full max-w-sm">
             <button className={cn(
