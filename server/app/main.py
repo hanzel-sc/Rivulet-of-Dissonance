@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import os
 import re
+from app.media_handler import update_job, get_cached_audio
 
 def sanitize_filename(filename: str) -> str:
     """Sanitize filename to be safe for OS"""
@@ -61,9 +62,18 @@ async def process_media(req: ProcessRequest, background_tasks: BackgroundTasks):
     job_id = create_job(req.video_id, req.mode, title=req.title)
     
     if req.mode == "audio":
+        cached_url = get_cached_audio(req.video_id)
+
+        if cached_url:
+            # Instant hit
+            
+            update_job(job_id, status="ready", url=cached_url)
+            return {"job_id": job_id, "status": "ready", "cached": True}
+
+        # Cache miss → download
         background_tasks.add_task(download_audio, req.video_id, job_id)
         return {"job_id": job_id, "status": "queued"}
-    
+
     elif req.mode == "video":
         return {
             "job_id": job_id,
@@ -90,18 +100,23 @@ async def download_file(job_id: str):
     job = get_job(job_id)
     if not job or job.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="Job not found")
-        
-    file_path = os.path.join(FILES_DIR, f"{job_id}.mp3")
+
+    file_url = job.get("url")
+    if not file_url:
+        raise HTTPException(status_code=404, detail="File not ready")
+
+    # file_url example: /media/files/audio_<video_id>.mp3
+    filename_on_disk = os.path.basename(file_url)
+    file_path = os.path.join(FILES_DIR, filename_on_disk)
+
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    
+
     title = job.get("title", "download")
     safe_title = sanitize_filename(title)
-    
+
     return FileResponse(
         path=file_path,
         media_type="audio/mpeg",
         filename=f"{safe_title}.mp3"
     )
-
-app.mount("/media", StaticFiles(directory="media"), name="media")

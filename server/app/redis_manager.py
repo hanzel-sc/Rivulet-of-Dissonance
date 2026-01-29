@@ -85,6 +85,42 @@ class RedisManager:
         """Clear all search cache"""
         for key in self.client.scan_iter("search:*"):
             self.client.delete(key)
+    
+    ## Audio Caching
+
+    # === Audio Cache ===
+
+    def get_cached_audio(self, video_id: str) -> Optional[str]:
+        """Return cached audio file URL if exists"""
+        return self.client.get(f"audio_cache:{video_id}")
+
+    def cache_audio(self, video_id: str, file_url: str, ttl: int = 86400):
+        """Cache downloaded audio"""
+        self.client.setex(f"audio_cache:{video_id}", ttl, file_url)
+
+    '''
+    RATE_LIMIT_SCRIPT = """
+    local current = redis.call("INCR", KEYS[1])
+    if current == 1 then
+    redis.call("EXPIRE", KEYS[1], ARGV[1])
+    end
+    return current
+    """
+
+    def increment_request_count(
+        self,
+        key: str,
+        window_seconds: int = 3600,
+        limit: int = 100
+    ) -> bool:
+        """Returns False if rate limit exceeded"""
+        count = self.client.eval(
+            RATE_LIMIT_SCRIPT,
+            1,
+            key,
+            window_seconds
+        )
+        return count <= limit'''
 
 # Global instance
 redis_manager: Optional[RedisManager] = None

@@ -40,7 +40,7 @@ function MediaDisplay({ media, onReset, isDownloading = false }) {
           )}>
             <audio
               controls
-              src={media.url}
+              src={`${API_BASE_URL}/download/${media.jobId}`}
               autoPlay
               className="w-full h-9"
             />

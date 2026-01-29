@@ -82,6 +82,10 @@ def update_job(job_id: str, **kwargs):
     redis = get_redis()
     redis.update_job(job_id, **kwargs)
 
+def get_cached_audio(video_id: str) -> str | None:
+    redis = get_redis()
+    return redis.get_cached_audio(video_id)
+
 def acquire_download_slot(job_id: str) -> bool:
     """Check if we can start a download (limit to 5 concurrent)"""
     redis = get_redis()
@@ -93,21 +97,28 @@ def release_download_slot(job_id: str):
     redis.release_download_slot(job_id)
 
 def download_audio(video_id: str, job_id: str) -> str:
-    """Download audio - optimized for speed"""
-    output_path = os.path.join(FILES_DIR, f"{job_id}.mp3")
-    url = f"https://youtube.com/watch?v={video_id}"
-    
-    # Wait for slot
+    redis = get_redis()
+
+    output_filename = f"audio_{video_id}.mp3"
+    output_path = os.path.join(FILES_DIR, output_filename)
+    file_url = f"/media/files/{output_filename}"
+
+    # check if file already exists
+    if os.path.exists(output_path):
+        update_job(job_id, status="ready", url=file_url)
+        redis.cache_audio(video_id, file_url)
+        return output_path
+
     if not acquire_download_slot(job_id):
         update_job(job_id, status="queued", message="Waiting for download slot")
         return None
-    
+
     try:
         update_job(job_id, status="downloading")
-        
+
         ydl_opts = {
             "format": "bestaudio/best",
-            "outtmpl": os.path.join(FILES_DIR, f"{job_id}.%(ext)s"),
+            "outtmpl": os.path.join(FILES_DIR, f"audio_{video_id}.%(ext)s"),
             "postprocessors": [{
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": "mp3",
@@ -115,23 +126,25 @@ def download_audio(video_id: str, job_id: str) -> str:
             }],
             "quiet": True,
             "no_warnings": True,
-            # Speed optimizations
-            "concurrent_fragment_downloads": 8,
+            "concurrent_fragment_downloads": 16,
             "retries": 3,
             "fragment_retries": 3,
         }
-        
+
         with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-        
-        update_job(job_id, status="ready", url=f"/media/files/{job_id}.mp3")
+            ydl.download([f"https://youtube.com/watch?v={video_id}"])
+
+        #cache after successful download of audio file...obviously
+        redis.cache_audio(video_id, file_url)
+
+        update_job(job_id, status="ready", url=file_url)
         return output_path
-    
+
     except Exception as e:
         update_job(job_id, status="failed", error=str(e))
         if os.path.exists(output_path):
             os.remove(output_path)
         raise
-    
+
     finally:
         release_download_slot(job_id)
