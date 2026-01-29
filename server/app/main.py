@@ -19,7 +19,16 @@ from app.media_handler import (
 from app.redis_manager import init_redis, get_redis
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+# CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+
+ALLOWED_ORIGINS = [
+    o.strip() for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o
+]
+
+ALLOWED_SUFFIXES = [
+    s.strip() for s in os.getenv("CORS_ALLOWED_ORIGIN_SUFFIXES", "").split(",") if s
+]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +38,34 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+def is_allowed_origin(origin: str | None) -> bool:
+    if not origin:
+        return False
+
+    # Exact match (frontend)
+    if origin in ALLOWED_ORIGINS:
+        return True
+
+    # Suffix match (Cloudflare tunnels, etc.)
+    for suffix in ALLOWED_SUFFIXES:
+        if origin.endswith(suffix):
+            return True
+
+    return False
+
+
+class DynamicCORSMiddleware(CORSMiddleware):
+    async def simple_response(self, scope, receive, send, request_headers):
+        origin = request_headers.get("origin")
+
+        if is_allowed_origin(origin):
+            self.allow_origins = [origin]
+        else:
+            self.allow_origins = []
+
+        await super().simple_response(scope, receive, send, request_headers)
+
 
 # CORS - Allow your Vercel frontend
 app.add_middleware(
