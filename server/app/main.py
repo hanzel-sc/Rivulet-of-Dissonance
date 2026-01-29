@@ -66,6 +66,17 @@ class DynamicCORSMiddleware(CORSMiddleware):
 
         await super().simple_response(scope, receive, send, request_headers)
 
+    async def preflight_response(self, scope, receive, send, request_headers):
+        origin = request_headers.get("origin")
+
+        if is_allowed_origin(origin):
+            self.allow_origins = [origin]
+        else:
+            self.allow_origins = []
+
+        # IMPORTANT: do NOT return anything
+        await super().preflight_response(scope, receive, send, request_headers)
+
 
 # CORS - Allow your Vercel frontend
 app.add_middleware(
