@@ -87,17 +87,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from fastapi.responses import Response
-
-@app.options("/search")
-async def search_options():
-    return Response(status_code=200)
-
-@app.options("/process")
-async def process_options():
-    return Response(status_code=200)
-
-
 @app.get("/health")
 async def health():
     redis = get_redis()
