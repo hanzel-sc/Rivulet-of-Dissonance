@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+from starlette.responses import Response
 import os
 import re
 from app.media_handler import update_job, get_cached_audio
@@ -30,6 +31,7 @@ ALLOWED_SUFFIXES = [
 ]
 
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -39,49 +41,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-def is_allowed_origin(origin: str | None) -> bool:
-    if not origin:
-        return False
-
-    # Exact match (frontend)
-    if origin in ALLOWED_ORIGINS:
-        return True
-
-    # Suffix match (Cloudflare tunnels, etc.)
-    for suffix in ALLOWED_SUFFIXES:
-        if origin.endswith(suffix):
-            return True
-
-    return False
-
-
-class DynamicCORSMiddleware(CORSMiddleware):
-    async def simple_response(self, scope, receive, send, request_headers):
-        origin = request_headers.get("origin")
-
-        if is_allowed_origin(origin):
-            self.allow_origins = [origin]
-        else:
-            self.allow_origins = []
-
-        await super().simple_response(scope, receive, send, request_headers)
-
-    async def preflight_response(self, scope, receive, send, request_headers):
-        origin = request_headers.get("origin")
-
-        if is_allowed_origin(origin):
-            self.allow_origins = [origin]
-        else:
-            self.allow_origins = []
-
-        # IMPORTANT: do NOT return anything
-        await super().preflight_response(scope, receive, send, request_headers)
-
-
-# CORS - Allow your Vercel frontend
+# Allow Vercel frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "https://rivulet-of-dissonance.vercel.app",
+    ],
+    allow_origin_regex=r"^https://(rivulet-of-dissonance.*\.vercel\.app|.*\.trycloudflare\.com)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
